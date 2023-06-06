@@ -39,6 +39,8 @@ from flask import Flask, Blueprint, make_response, request, send_from_directory
 from pygeoapi.api import API
 from pygeoapi.util import get_mimetype, yaml_load, get_api_rules
 
+os.environ['PYGEOAPI_CONFIG'] = 'example-config.yml'
+os.environ['PYGEOAPI_OPENAPI'] = 'example-openapi.yml'
 
 if 'PYGEOAPI_CONFIG' not in os.environ:
     raise RuntimeError('PYGEOAPI_CONFIG environment variable not set')
@@ -342,7 +344,7 @@ def collection_map(collection_id, style_id=None):
 
 
 @BLUEPRINT.route('/processes')
-@BLUEPRINT.route('/processes/<path:process_id>')
+@BLUEPRINT.route('/processes/<process_id>')
 def get_processes(process_id=None):
     """
     OGC API - Processes description endpoint
@@ -375,7 +377,7 @@ def get_jobs(job_id=None):
             return get_response(api_.get_jobs(request, job_id))
 
 
-@BLUEPRINT.route('/processes/<path:process_id>/execution', methods=['POST'])
+@BLUEPRINT.route('/processes/<process_id>/execution', methods=['POST'])
 def execute_process_jobs(process_id):
     """
     OGC API - Processes execution endpoint

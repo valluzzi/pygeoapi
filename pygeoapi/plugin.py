@@ -65,12 +65,14 @@ PLUGINS = {
         'CSV': 'pygeoapi.formatter.csv_.CSVFormatter'
     },
     'process': {
-        'HelloWorld': 'pygeoapi.process.hello_world.HelloWorldProcessor'
+        'HelloWorld': 'pygeoapi.process.hello_world.HelloWorldProcessor',
+        'SillyProcess': 'pygeoapi.process.silly_process.SillyProcessProcessor'
     },
     'process_manager': {
         'Dummy': 'pygeoapi.process.manager.dummy.DummyManager',
         'MongoDB': 'pygeoapi.process.manager.mongodb_.MongoDBManager',
-        'TinyDB': 'pygeoapi.process.manager.tinydb_.TinyDBManager'
+        'TinyDB': 'pygeoapi.process.manager.tinydb_.TinyDBManager',
+        'Kubernetes': 'pygeoapi.process.manager.kubernetes.KubernetesManager'
     }
 }
 

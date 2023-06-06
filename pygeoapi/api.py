@@ -3533,7 +3533,7 @@ class API:
         except (UnicodeDecodeError, AttributeError):
             pass
 
-        try:
+        try:           
             data = json.loads(data)
         except (json.decoder.JSONDecodeError, TypeError) as err:
             # Input does not appear to be valid JSON
@@ -3553,7 +3553,7 @@ class API:
         except ValueError:
             execution_mode = None
         try:
-            LOGGER.debug('Executing process')
+            LOGGER.debug(f'Executing process with {type(self.manager)}')
             result = self.manager.execute_process(
                 process, data_dict, execution_mode=execution_mode)
             job_id, mime_type, outputs, status, additional_headers = result

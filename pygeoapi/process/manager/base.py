@@ -175,6 +175,10 @@ class BaseManager:
         process_id = p.metadata['id']
         current_status = JobStatus.accepted
 
+        LOGGER.debug('Executing process {}'.format(process_id))
+        LOGGER.debug('Job ID: {}'.format(job_id))   
+        LOGGER.debug('------------------------------------------')
+
         job_metadata = {
             'identifier': job_id,
             'process_id': process_id,
