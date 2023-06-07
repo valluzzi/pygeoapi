@@ -27,7 +27,7 @@
 #
 # =================================================================
 
-# curl -X POST -H "Content-Type: application/json" -d "{\"inputs\":{\"name\":\"valerio\"}}" http://localhost:5000/processes/gdalinfo/execution
+# C:\Users\vlr20>curl -X POST -H "Content-Type: application/json"  -d "{\"mode\":\"sync\",\"inputs\":{\"command\":\"gdal_translate\"}}" http://localhost:5000/processes/k8s/execution
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 from .manager.kubernetes_utils import *
 
@@ -53,7 +53,19 @@ PROCESS_METADATA = {
         'href': 'https://example.org/process',
         'hreflang': 'en-US'
     }],
-    'inputs':{},
+    'inputs': {
+        'command': {
+            'title': 'command',
+            'description': 'The commad string to execute on kubernet pod',
+            'schema': {
+                'type': 'string'
+            },
+            'minOccurs': 1,
+            'maxOccurs': 1,
+            'metadata': None,  # TODO how to use?
+            # 'keywords': ['full name', 'personal']
+        },
+    },
     'outputs': {
         'echo': {
             'title': 'Generic Kubernetes Process',
@@ -66,6 +78,8 @@ PROCESS_METADATA = {
     },
     'example': {
         'inputs': {
+            'image': 'docker.io/valerioluzzi/gdal:latest',
+            'command': 'gdalinfo --version'
         }
     }
 }
@@ -82,21 +96,38 @@ class K8sProcessor(BaseProcessor):
 
         :param processor_def: provider definition
 
-        :returns: pygeoapi.process.gdal_process.GdalinfoProcessor
+        :returns: pygeoapi.process.k8s_process.K8sProcessor
         """
-
         super().__init__(processor_def, PROCESS_METADATA)
 
+    def check_inputs(self, data):
+        """
+        check inputs validity
+        """
+        if 'command' not in data:
+            return False
+        if not data['command']:
+            return False
+
+        return True
+
     def execute(self, data):
- 
-        mimetype = 'application/json'
-        outputs  = k8s_execute('gdalinfo  --version')
 
-        if outputs["status"] != "Completed":
-            print(outputs["message"])
-            raise ProcessorExecuteError(outputs["message"])
+        if self.check_inputs(data):
 
-        return mimetype, outputs
+            command = data['command']
+
+            outputs = k8s_execute(f"{command} --version")
+
+            if outputs["status"] != "Completed":
+                print(outputs["message"])
+                raise ProcessorExecuteError(outputs["message"])
+
+            mimetype = 'application/json'
+            return mimetype, outputs
+        else:
+            print("1b)")
+            raise ProcessorExecuteError('Missing command parameter')
 
     def __repr__(self):
         return f'<K8sProcessor> {self.name}'
