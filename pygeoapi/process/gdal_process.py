@@ -27,33 +27,28 @@
 #
 # =================================================================
 
-# curl -X POST -H "Content-Type: application/json" -d "{\"inputs\":{\"name\":\"valerio\"}}" http://localhost:5000/processes/silly-process/execution
+# curl -X POST -H "Content-Type: application/json" -d "{\"inputs\":{\"name\":\"valerio\"}}" http://localhost:5000/processes/gdalinfo/execution
 
-import logging, time
+import logging
 
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
+from .manager.kubernetes_utils import *
 
-
-LOGGER = logging.getLogger(__name__)
 
 #: Process metadata and description
 PROCESS_METADATA = {
-    'version': '0.2.0',
-    'id': 'silly-process',
+    'version': '0.0.1',
+    'id': 'gdalinfo',
     'title': {
-        'en': 'Silly Process',
-        'fr': 'Processus stupide',
+        'en': 'GdalInfo Process',
+        'fr': 'Processus GdalInfo',
     },
     'description': {
-        'en': 'An example process that takes a name as input, and echoes '
-              'it back as output. Intended to demonstrate a simple '
-              'process with a single literal input.',
-        'fr': 'Un exemple de processus qui prend un nom en entrée et le '
-              'renvoie en sortie. Destiné à démontrer un processus '
-              'simple avec une seule entrée littérale.'
+        'en': 'An example process that run on kubernetes',
+        'fr': 'Un exemple de processus qui execute gdalinfo sur kubernetes'
     },
     'jobControlOptions': ['sync-execute', 'async-execute'],
-    'keywords': ['silly process', 'example', 'echo'],
+    'keywords': ['gdalinfo', 'example', 'echo'],
     'links': [{
         'type': 'text/html',
         'rel': 'about',
@@ -61,23 +56,10 @@ PROCESS_METADATA = {
         'href': 'https://example.org/process',
         'hreflang': 'en-US'
     }],
-    'inputs': {
-        'name': {
-            'title': 'Name',
-            'description': 'The name of the person or entity that you wish to'
-                           'be echoed back as an output',
-            'schema': {
-                'type': 'string'
-            },
-            'minOccurs': 1,
-            'maxOccurs': 1,
-            'metadata': None,  # TODO how to use?
-            'keywords': ['full name', 'personal']
-        }
-    },
+    'inputs':{},
     'outputs': {
         'echo': {
-            'title': 'Silly Process Echo',
+            'title': 'GdalInfo Process Echo',
             'description': 'A "hello world" echo with the name and (optional)'
                            ' message submitted for processing',
             'schema': {
@@ -88,14 +70,15 @@ PROCESS_METADATA = {
     },
     'example': {
         'inputs': {
-            'name': 'World'
         }
     }
 }
 
 
-class SillyProcessProcessor(BaseProcessor):
-    """Silly Processor example"""
+class GdalinfoProcessor(BaseProcessor):
+    """
+    Gdalinfo Processor example
+    """
 
     def __init__(self, processor_def):
         """
@@ -103,28 +86,21 @@ class SillyProcessProcessor(BaseProcessor):
 
         :param processor_def: provider definition
 
-        :returns: pygeoapi.process.silly_process.SillyProcessProcessor
+        :returns: pygeoapi.process.gdal_process.GdalinfoProcessor
         """
 
         super().__init__(processor_def, PROCESS_METADATA)
 
     def execute(self, data):
-
+ 
         mimetype = 'application/json'
-        name = data.get('name')
+        outputs  = k8s_execute('gdalinfo  --version')
 
-        if name is None:
-            raise ProcessorExecuteError('Cannot process without a name')
-        
-        value = f'Hello {name}!'.strip()
-
-    
-        outputs = {
-            'id': 'silly-process-echo',
-            'value': value
-        }
+        if outputs["status"] != "Completed":
+            print(outputs["message"])
+            raise ProcessorExecuteError(outputs["message"])
 
         return mimetype, outputs
 
     def __repr__(self):
-        return f'<SillyProcessProcessor> {self.name}'
+        return f'<GdalinfoProcessor> {self.name}'

@@ -50,13 +50,13 @@ server:
         attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
     
     manager:
-        name: Kubernetes
+        name: TinyDB
         connection: /tmp/pygeoapi-process-manager.db
         output_dir: /tmp/
     # ogc_schemas_location: /opt/schemas.opengis.net
     
 logging:
-    level: DEBUG
+    level: ERROR
     #logfile: /tmp/pygeoapi.log
 
 metadata:
@@ -112,3 +112,13 @@ resources:
         type: process
         processor:
             name: SillyProcess
+
+    gdalinfo:
+        type: process
+        processor:
+            name: Gdalinfo
+
+    k8s:
+        type: process
+        processor:
+            name: K8s

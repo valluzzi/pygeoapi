@@ -289,6 +289,11 @@ class BaseManager:
         """
 
         job_id = str(uuid.uuid1())
+
+        print("===============================================")
+        print(f"Execution mode:<{execution_mode}>")
+        print("===============================================")
+
         if execution_mode == RequestedProcessExecutionMode.respond_async:
             # client wants async - do we support it?
             process_supports_async = (

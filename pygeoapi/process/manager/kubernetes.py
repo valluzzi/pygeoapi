@@ -106,6 +106,8 @@ class KubernetesManager(TinyDBManager):
             # TODO: run the pod instead  
 
             jfmt, outputs = p.execute(data_dict)
+            print(jfmt, outputs)
+            print("========================================")
 
             # 1) create a pod
             # 2) wait for the pod Running

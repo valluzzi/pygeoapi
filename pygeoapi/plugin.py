@@ -66,7 +66,9 @@ PLUGINS = {
     },
     'process': {
         'HelloWorld': 'pygeoapi.process.hello_world.HelloWorldProcessor',
-        'SillyProcess': 'pygeoapi.process.silly_process.SillyProcessProcessor'
+        'SillyProcess': 'pygeoapi.process.silly_process.SillyProcessProcessor',
+        'Gdalinfo': 'pygeoapi.process.gdal_process.GdalinfoProcessor',
+        'K8s': 'pygeoapi.process.k8s_process.K8sProcessor',
     },
     'process_manager': {
         'Dummy': 'pygeoapi.process.manager.dummy.DummyManager',
