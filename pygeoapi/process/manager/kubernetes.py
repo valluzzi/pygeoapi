@@ -33,7 +33,8 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, Tuple, Optional
 import uuid
-from kubernetes import client,config,utils
+from kubernetes import client, config, utils
+from .kubernetes_utils import *
 
 from pygeoapi.util import DATETIME_FORMAT,JobStatus 
 from pygeoapi.process.manager.tinydb_ import TinyDBManager
@@ -104,10 +105,35 @@ class KubernetesManager(TinyDBManager):
             current_status = JobStatus.running
 
             # TODO: run the pod instead  
-            #outputs = k8s_execute(f"{command} --version")
+            #jfmt, outputs = p.execute(data_dict)
+            
+            jfmt = "application/json"
+            command = data_dict['command']
+            stream = create_pod(command)
+            
+            res = ""
+            
+            for line in stream:
+                line = line.decode("utf-8")
+                p = parse_progress(line)
+                # get the progress percentage from table of jobs
+                job = self.get_job(job_id)
 
+                if p >=0 and p <=100 and p>job['progress']:
+                    self.update_job(job_id, {
+                        'status': current_status.value,
+                        'message': 'Job running',
+                        'progress': p
+                    })
+                res += line
 
-            jfmt, outputs = p.execute(data_dict)
+            #application/json, { 'id': 'gdal-20230613125916', 'status': 'Completed', 'message': 'GDAL 3.7.0dev-f26e795279c48852b44bc9659d728421544528b9, released 2023/01/27\n'}
+            outputs = {
+                "id": "podname",
+                "status": "Completed",
+                "message": res
+            }
+            print(data_dict)
             print(jfmt, outputs)
             print("========================================")
 

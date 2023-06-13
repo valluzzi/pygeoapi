@@ -9,6 +9,7 @@ from .model_catalog_mockup import model_catalog
 LOGGER = logging.getLogger(__name__)
 logging.basicConfig(level=logging.ERROR)
 
+
 def get_command(command):
     """
     get_command
@@ -64,14 +65,64 @@ def create_pod(command):
 
         #LOGGER.debug(f"Creating pod {pod_name}...")
         try:
+            ns = "default"
+            pod_name = pod_manifest["metadata"]["name"]
             # Try creating the pod
             pod = api_instance.create_namespaced_pod(
-                body=pod_manifest, namespace="default")
-            #LOGGER.debug(f"Pod '{pod_name}' created.")
-            return pod
+                body=pod_manifest, namespace=ns)
+            LOGGER.debug(f"Pod '{pod_name}' created.")
+
+            while pod.status.phase == "Pending":
+                LOGGER.debug(f"{pod.status.phase}...")
+                pod = api_instance.read_namespaced_pod(
+                    name=pod_name, namespace=ns)
+                time.sleep(0.5)
+            
+            logs = api_instance.read_namespaced_pod_log(
+                name=pod_name, namespace=ns, follow=True, _preload_content=False)
+            return logs.stream()
+            
         except client.rest.ApiException as ex:
             LOGGER.error(f"Unknown error:{ex}")
     
+    return None
+
+
+def wait_for_pod(pod):
+    """
+    wait_for_pod - wait for the pod to be running
+    """
+    if pod and pod.metadata:
+        try:
+            api_instance = client.CoreV1Api()
+            pod_name = pod.metadata.name
+            namespace = pod.metadata.namespace
+            # wait for the pod to be running
+            while pod.status.phase == "Pending":
+                #LOGGER.debug(f"{pod.status.phase}...")
+                pod = api_instance.read_namespaced_pod(
+                    name=pod_name, namespace=namespace)
+                time.sleep(0.5)
+        except client.rest.ApiException as ex:
+            LOGGER.error(f"Unknown error:{ex}")
+
+
+def get_stream(pod):
+    """
+    get_stream
+    """
+    wait_for_pod(pod)
+    if pod and pod.metadata:
+        try:
+            api_instance = client.CoreV1Api()
+            pod_name = pod.metadata.name
+            namespace = pod.metadata.namespace
+            # get the pod logs
+            logs = api_instance.read_namespaced_pod_log(
+                name=pod_name, namespace=namespace, follow=True, _preload_content=False)
+            return logs.stream()
+        except client.rest.ApiException as ex:
+            LOGGER.error(f"Unknown error:{ex}")
     return None
 
 
@@ -97,6 +148,9 @@ def read_log(pod, close=False):
             for line in logs.stream():
                 line = line.decode('utf-8')
                 p = parse_progress(line)
+                if p>=0:
+                    # update the progress
+                    pass
                 res+=line 
 
             if close:
