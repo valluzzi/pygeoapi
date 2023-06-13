@@ -104,6 +104,8 @@ class KubernetesManager(TinyDBManager):
             current_status = JobStatus.running
 
             # TODO: run the pod instead  
+            #outputs = k8s_execute(f"{command} --version")
+
 
             jfmt, outputs = p.execute(data_dict)
             print(jfmt, outputs)

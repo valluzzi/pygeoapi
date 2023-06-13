@@ -1,3 +1,4 @@
+import re
 import time
 from kubernetes import client, config
 import shlex
@@ -14,6 +15,19 @@ def get_command(command):
     """
     args = shlex.split(command)
     return args[0] if args else None
+
+
+def parse_progress(line):
+    """
+    parse_progress - parse a log line in search for a progress percentage
+    """
+    if line:
+        # match percentage in the line 
+        # regexp with named group 'percentage'
+        m = re.match(r".*?(?P<percent>\d+(\.\d*)?)\s*%.*?", line)
+        percent = m.group("percent") if m else -1
+        return float(percent)
+    return -1
 
 
 def manifest_from_catalog(command):
@@ -81,7 +95,9 @@ def read_log(pod, close=False):
             logs = api_instance.read_namespaced_pod_log(
                 name=pod_name, namespace=namespace, follow=True, _preload_content=False)
             for line in logs.stream():
-                res += line.decode('utf-8')
+                line = line.decode('utf-8')
+                p = parse_progress(line)
+                res+=line 
 
             if close:
                 api_instance.delete_namespaced_pod(
