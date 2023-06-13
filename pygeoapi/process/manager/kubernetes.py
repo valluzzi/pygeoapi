@@ -61,7 +61,7 @@ class KubernetesManager(TinyDBManager):
         config.load_kube_config()
     
 
-    def _execute_handler_sync(self, p: BaseProcessor, job_id: str,
+    def _execute_handler_sync(self, percent: BaseProcessor, job_id: str,
                               data_dict: dict) -> Tuple[str, Any, JobStatus]:
         """
         Synchronous execution handler
@@ -77,7 +77,7 @@ class KubernetesManager(TinyDBManager):
         :returns: tuple of MIME type, response payload and status
         """
 
-        process_id = p.metadata['id']
+        process_id = percent.metadata['id']
         current_status = JobStatus.accepted
 
         job_metadata = {
@@ -97,7 +97,7 @@ class KubernetesManager(TinyDBManager):
 
         try:
             if self.output_dir is not None:
-                filename = f"{p.metadata['id']}-{job_id}"
+                filename = f"{percent.metadata['id']}-{job_id}"
                 job_filename = self.output_dir / filename
             else:
                 job_filename = None
@@ -115,15 +115,15 @@ class KubernetesManager(TinyDBManager):
             
             for line in stream:
                 line = line.decode("utf-8")
-                p = parse_progress(line)
+                percent = parse_progress(line)
                 # get the progress percentage from table of jobs
                 job = self.get_job(job_id)
 
-                if p >= 0 and p <= 100 and p > job['progress']:
+                if  0 <= percent <= 100 and percent > job['progress']:
                     self.update_job(job_id, {
                         'status': current_status.value,
                         'message': 'Job running',
-                        'progress': p
+                        'progress': percent
                     })
                 res += line
 
