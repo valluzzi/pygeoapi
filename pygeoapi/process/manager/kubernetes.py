@@ -119,7 +119,7 @@ class KubernetesManager(TinyDBManager):
                 # get the progress percentage from table of jobs
                 job = self.get_job(job_id)
 
-                if p >=0 and p <=100 and p>job['progress']:
+                if p >= 0 and p <= 100 and p > job['progress']:
                     self.update_job(job_id, {
                         'status': current_status.value,
                         'message': 'Job running',
